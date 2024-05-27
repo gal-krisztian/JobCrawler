@@ -1,0 +1,8 @@
+# Ignore documentation
+JobCrawler.docx
+
+# Ignore __pycache__
+__pycache__/
+
+# Ignore virtual environment
+jobcrawler_env/
