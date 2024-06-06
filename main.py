@@ -1,12 +1,13 @@
 from functions import manage_request, load_soup
 from profession import get_page_count, get_page_urls, get_url, get_id, get_position, get_co_info_salary
+from database import open_database, close_database
 
 def profession():
     start_url = "https://www.profession.hu/allasok"
 
     page = manage_request(start_url)
 
-    # If there is no page abort running
+    # If there is no page to load then abort running
     if page is None:
         return
     
@@ -48,3 +49,9 @@ def profession():
             position = get_position(soup)
 
             company_name, company_address, salary_details = get_co_info_salary(soup, url)
+
+cursor = open_database().cursor()
+
+profession()
+
+cursor.close()

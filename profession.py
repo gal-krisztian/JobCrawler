@@ -1,5 +1,6 @@
 import re
 
+# Getting the maximum number of pages
 def get_page_count(p_soup):
     page_count = None
 
@@ -9,6 +10,7 @@ def get_page_count(p_soup):
 
     return page_count
 
+# Getting urls of "cards"
 def get_page_urls(p_soup):
     job_card_urls = []
 
@@ -19,6 +21,7 @@ def get_page_urls(p_soup):
 
     return job_card_urls
 
+# Getting url of a job
 def get_url(p_soup):
     url = None
 
@@ -29,6 +32,7 @@ def get_url(p_soup):
 
     return url
 
+# Getting id via regular expression out of url
 def get_id(p_url):
     id = None
 
@@ -36,6 +40,7 @@ def get_id(p_url):
 
     return id
 
+# Getting the name of the position
 def get_position(p_soup):
     position = None
 
@@ -46,6 +51,7 @@ def get_position(p_soup):
     
     return position
 
+# Getting a company's name, address and salary (and benefits in some cases like bonus or premium)
 def get_co_info_salary(p_soup, p_url):
     company_name = None
     company_address = None
