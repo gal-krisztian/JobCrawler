@@ -6,6 +6,8 @@ create or replace function is_exists_column(
 
 return pls_integer
 
+authid current_user
+
 is
 
 l_is_exists pls_integer;
@@ -39,6 +41,8 @@ create or replace function is_exists_table(
     
 return number
 
+authid current_user
+
 is
 l_is_exists     number;
 l_owner         all_tables.owner%type       :=  upper(p_owner);
@@ -60,3 +64,12 @@ end is_exists_table;
 
 -- Grant the EXECUTE privilege on the function to the PUBLIC role to enable access for all users.
 grant execute on is_exists_table to public;
+/
+
+-- grant privilege for testing purposes.
+grant execute on is_exists_column to jobscrape;
+/
+
+-- grant privilege for testing purposes.
+grant execute on is_exists_table to jobscrape;
+/
