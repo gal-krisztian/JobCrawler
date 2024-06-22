@@ -12,3 +12,6 @@ grant create procedure to jobcrawler;
 
 -- Grant privilege to be able to create table
 grant create table to jobcrawler;
+
+-- Grant unlimited tablespace to be able to insert into tables
+grant unlimited tablespace to jobcrawler;

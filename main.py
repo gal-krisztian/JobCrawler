@@ -1,14 +1,15 @@
 from functions import manage_request, load_soup
 from profession import get_page_count, get_page_urls, get_url, get_id, get_position, get_co_info_salary
-from database import open_database, close_database, is_exists_table, create_table, expand_table
+from database import open_database, close_database, is_exists_table, create_table, expand_table, insert_values
 
 def profession():
+    source = "Profession"
     start_url = "https://www.profession.hu/allasok"
     schema = "JOBCRAWLER"
     table = "SCRAPE_PROFESSION_RAW"
 
     if is_exists_table(cursor, schema, table) == 0:
-        columns = dict(tnd = "date", source = "varchar2(30)")
+        columns = dict(tnd = "date", source = "varchar2(30)", status = "varchar2(1)", status_from = "date", status_to = "date")
 
         create_table(cursor, schema, table, columns)
 
@@ -58,6 +59,8 @@ def profession():
             company_name, company_address, salary_details = get_co_info_salary(soup, url)
 
             expand_table(cursor, schema, table, id, url, position, company_name, company_address, salary_details)
+
+            insert_values(cursor, schema, table, source, id, url, position, company_name, company_address, salary_details)
 
 cursor = open_database()
 
