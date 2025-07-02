@@ -55,7 +55,8 @@ def get_position(p_soup):
 def get_co_info_salary(p_soup, p_url):
     company_name = None
     company_address = None
-    salary_details=[]
+    unfiltered_salary_details = []
+    salary_details = []
 
     job_details = p_soup.body.div.main.find("ul", class_="job-details-list p-0").find_all("h3", class_="sr-only")
 
@@ -64,7 +65,10 @@ def get_co_info_salary(p_soup, p_url):
             company_name = p_soup.body.div.main.find("ul", class_="job-details-list p-0").find("h2", class_="my-auto").text.strip()
 
         elif job_detail.text.strip() == "Munkavégzés helye":
-            company_address = p_soup.body.div.main.find("ul", class_="job-details-list p-0").find("h2", itemprop="addressLocality").text
+            try:
+                company_address = p_soup.body.div.main.find("ul", class_="job-details-list p-0").find("span", itemprop="addressLocality").text.strip()
+            except AttributeError:
+                print(f"Attribute error, Munkavégzés helye: {p_url}")
 
         elif job_detail.text.strip() == "Fizetés":
             salary = p_soup.body.div.main.find("div", class_="my-auto salary-info")
@@ -76,7 +80,12 @@ def get_co_info_salary(p_soup, p_url):
                 salary_alt = salary.find_all("span")
 
                 for salary in salary_alt:
-                    salary_details.append(f"{salary.text.strip()} {salary.next_sibling.strip()}")
+                    unfiltered_salary_details.append(f"{salary.text.strip()} {salary.next_sibling.strip()}")
+                for line in unfiltered_salary_details:
+                    if line.strip() == "Számolja ki a nettó fizetést bérkalkulátorunkkal!" or line.strip() == "":
+                        continue
+                    else:
+                        salary_details.append(line.strip())
         else:
             print(f"Egyéb kategória: {job_detail.text.strip()}:\n{p_url}")
     

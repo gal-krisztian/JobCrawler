@@ -1,4 +1,4 @@
-from functions import manage_request, load_soup
+from functions import manage_request, load_soup, wait
 from profession import get_page_count, get_page_urls, get_url, get_id, get_position, get_co_info_salary
 from database import open_database, close_database, is_exists_table, create_table, expand_table, insert_values
 
@@ -41,6 +41,7 @@ def profession():
 
         # Loop through every job's page
         for recent_url in job_card_urls:
+            wait()
             try:
                 id = get_id(recent_url)
             except AttributeError as e:
@@ -61,6 +62,8 @@ def profession():
             expand_table(cursor, schema, table, id, url, position, company_name, company_address, salary_details)
 
             insert_values(cursor, schema, table, source, id, url, position, company_name, company_address, salary_details)
+
+        print(f"{page_number} oldal van kész a {page_count}-ból.")
 
 cursor = open_database()
 

@@ -1,4 +1,6 @@
 import requests
+import random
+from time import sleep
 from bs4 import BeautifulSoup
 
 def manage_request(p_href):
@@ -25,3 +27,7 @@ def load_soup(p_page):
     soup = BeautifulSoup(p_page.content, "html.parser")
 
     return soup
+
+def wait():
+    seconds_to_wait = random.randint(0, 2)
+    sleep(seconds_to_wait)
