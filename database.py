@@ -69,7 +69,7 @@ def expand_table(cursor, schema, table, id, url, position, company_name, company
 def insert_values(cursor, schema, table, source, id, url, position, company_name, company_address, salary_details):
 
     # Get object with 'signature', 'parameters' returns a dictionary like this: parameter name: parameter object; 'values' return all values from dictionary, exclude first three element
-    parameters = list(inspect.signature(expand_table).parameters.values())[4:]
+    parameters = list(inspect.signature(insert_values).parameters.values())[4:]
 
     # Create merge into to insert or modify row in table
     sql = f"merge into {schema}.{table} s using (select sysdate as tnd, '{source}' as source, 'A' as status, sysdate as status_from, sysdate as status_to"
@@ -114,6 +114,75 @@ def insert_values(cursor, schema, table, source, id, url, position, company_name
     try:
         cursor.execute(sql)
         cursor.execute("commit")
+    except oracledb.DatabaseError as e:
+        error, = e.args
+        print("Error code: ", error.code, " Error message: ", error.message)
+
+def get_values(p_cursor, p_schema, p_table, p_value, p_condition="1=1"):
+    
+    try:
+        sql = f"select {p_value} from {p_schema}.{p_table} where {p_condition}"
+
+        p_cursor.execute(sql)
+
+        columns = [column[0] for column in p_cursor.description]
+
+    except oracledb.DatabaseError as e:
+        error, = e.args
+        print("Error code: ", error.code, " Error message: ", error.message)
+
+    finally:
+        return [dict(zip(columns, row)) for row in p_cursor.fetchall()]
+    
+def load_scrape_job(p_cursor, p_schema, p_table, p_id, p_company_id):
+    sql = f"insert into {p_schema}.{p_table} (tnd, source, status, status_from, status_to, id, url, position, company_id) select sysdate, 'profession', status, status_from, status_to, id, url, position, '{p_company_id}' as company_id from jobcrawler.scrape_profession_raw where id = {p_id}"
+
+    try:
+        p_cursor.execute(sql)
+        p_cursor.execute("commit")
+    except oracledb.DatabaseError as e:
+        error, = e.args
+        print("Error code: ", error.code, " Error message: ", error.message)
+
+def load_scrape_company(p_cursor, p_schema, p_table, p_company_name, p_company_address, p_country, p_country_code, p_state, p_county, p_city, p_postcode, p_district, p_street, p_housenumber):
+    company_id = p_cursor.var(oracledb.STRING, size=11)
+
+    sql = f"""
+        INSERT INTO {p_schema}.{p_table} (
+            tnd, company_name, company_full_address,
+            country, country_code, state, county, city,
+            postcode, district, street, housenumber
+        )
+        VALUES (
+            SYSDATE, :company_name, :company_address,
+            :country, :country_code, :state, :county, :city,
+            :postcode, :district, :street, :housenumber
+        )
+        RETURNING id INTO :company_id
+    """
+
+    params = {
+        "company_name": p_company_name,
+        "company_address": p_company_address,
+        "country": p_country,
+        "country_code": p_country_code,
+        "state": p_state,
+        "county": p_county,
+        "city": p_city,
+        "postcode": p_postcode,
+        "district": p_district,
+        "street": p_street,
+        "housenumber": p_housenumber,
+        "company_id": company_id
+    }
+
+
+    try:
+        p_cursor.execute(sql, params)
+        p_cursor.execute("commit")
+
+        return company_id.getvalue()[0]
+
     except oracledb.DatabaseError as e:
         error, = e.args
         print("Error code: ", error.code, " Error message: ", error.message)

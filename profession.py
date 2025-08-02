@@ -58,7 +58,10 @@ def get_co_info_salary(p_soup, p_url):
     unfiltered_salary_details = []
     salary_details = []
 
-    job_details = p_soup.body.div.main.find("ul", class_="job-details-list p-0").find_all("h3", class_="sr-only")
+    try:
+        job_details = p_soup.body.div.main.find("ul", class_="job-details-list p-0").find_all("h3", class_="sr-only")
+    except AttributeError:
+        print(f"Attribute error, job_details: {p_url}")
 
     for job_detail in job_details:
         if job_detail.text.strip() == "Cég neve":

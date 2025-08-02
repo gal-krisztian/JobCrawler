@@ -9,3 +9,6 @@ jobcrawler_env/
 
 # Ignore config file
 config.py
+
+# Ignore test files
+*test*

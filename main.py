@@ -1,6 +1,7 @@
-from functions import manage_request, load_soup, wait
+from functions import manage_request, load_soup
 from profession import get_page_count, get_page_urls, get_url, get_id, get_position, get_co_info_salary
-from database import open_database, close_database, is_exists_table, create_table, expand_table, insert_values
+from database import open_database, close_database, is_exists_table, create_table, expand_table, insert_values, get_values, load_scrape_job, load_scrape_company
+from data import process_address
 
 def profession():
     source = "Profession"
@@ -25,6 +26,9 @@ def profession():
     # Get maximum page number to loop through
     page_count = get_page_count(soup)
 
+    # Getting an error if expand_table has not been run yet
+    saved_ids = get_values(cursor, schema, table, "id", "status = 'A'")
+
     # Loop through every page
     for page_number in range(1, page_count + 1, 1):
         
@@ -41,9 +45,12 @@ def profession():
 
         # Loop through every job's page
         for recent_url in job_card_urls:
-            wait()
             try:
                 id = get_id(recent_url)
+
+                if any(id in saved_id['ID'] for saved_id in saved_ids):
+                    continue
+
             except AttributeError as e:
                 error, = e.args
                 print(f"{recent_url}\nError code: {error.code}, Error message: {error.message}")
@@ -65,8 +72,50 @@ def profession():
 
         print(f"{page_number} oldal van kész a {page_count}-ból.")
 
+def load_profession():
+    schema = "JOBCRAWLER"
+    table = "SCRAPE_PROFESSION_RAW"
+    company_id = None
+
+    raw_ids = get_values(cursor, "JOBCRAWLER", "SCRAPE_PROFESSION_RAW", "id, company_name, company_address", "status = 'A'")
+
+    job_ids = get_values(cursor, "JOBCRAWLER", "SCRAPE_JOB", "id", "status = 'A'")
+
+    company_ids = get_values(cursor, "JOBCRAWLER", "SCRAPE_COMPANY", "id, company_name, company_full_address")
+
+    # Create set to check if company already exists
+    existing_companies = set((company["COMPANY_NAME"].strip().lower(), company["COMPANY_FULL_ADDRESS"].strip().lower()) for company in company_ids)
+
+    for id in raw_ids:
+        if any(id['ID'] == job_id['ID'] for job_id in job_ids):
+            continue
+
+        else:
+
+            raw_com_name = id['COMPANY_NAME'].strip().lower()
+            raw_com_address = id['COMPANY_ADDRESS'].strip().lower()
+
+            if (raw_com_name, raw_com_address) in existing_companies:
+                for company in company_ids:
+                    if (company["COMPANY_NAME"].strip().lower() == raw_com_name and company["COMPANY_FULL_ADDRESS"].strip().lower() == raw_com_address):
+                        company_id = company["ID"]
+                        break
+                
+                load_scrape_job(cursor, "JOBCRAWLER", "SCRAPE_JOB", id['ID'], company_id)
+            else:
+                company_name, company_address, country, country_code, state, county, city, postcode, district, street, housenumber = process_address(cursor, schema, table, id['ID'])
+            
+                company_id = load_scrape_company(cursor, "JOBCRAWLER", "SCRAPE_COMPANY", company_name, company_address, country, country_code, state, county, city, postcode, district, street, housenumber)
+
+                existing_companies.add((company_name.strip().lower(), company_address.strip().lower()))
+
+                load_scrape_job(cursor, "JOBCRAWLER", "SCRAPE_JOB", id['ID'], company_id)
+
+
 cursor = open_database()
 
 profession()
+
+load_profession()
 
 close_database(cursor)

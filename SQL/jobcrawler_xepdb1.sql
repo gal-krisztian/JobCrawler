@@ -73,3 +73,59 @@ grant execute on is_exists_column to jobscrape;
 -- grant privilege for testing purposes.
 grant execute on is_exists_table to jobscrape;
 /
+
+-- create a sequence to generate identification numbers for companys
+CREATE SEQUENCE scrape_company_seq
+  START WITH 1
+  INCREMENT BY 1
+  NOCACHE
+  NOCYCLE;
+/
+
+-- create scrape_company table
+CREATE TABLE scrape_company (
+    id VARCHAR2(11) PRIMARY KEY,
+    tnd DATE,
+    company_name VARCHAR2(150),
+    company_full_address VARCHAR2(250),
+    country VARCHAR2(50),
+    country_code VARCHAR2(2),
+    state VARCHAR2(50),
+    county VARCHAR2(50),
+    city VARCHAR2(50),
+    postcode VARCHAR2(10),
+    district VARCHAR2(75),
+    street VARCHAR2(50),
+    housenumber VARCHAR2(10)
+);
+/
+
+-- create trigger to generate identification numbers in scrape_company
+CREATE OR REPLACE TRIGGER scrape_company_trg
+BEFORE INSERT ON scrape_company
+FOR EACH ROW
+BEGIN
+  IF :NEW.id IS NULL THEN
+    SELECT 'COMP' || LPAD(scrape_company_seq.NEXTVAL, 7, '0')
+    INTO :NEW.id
+    FROM dual;
+  END IF;
+END;
+/
+
+-- create scrape_job table
+CREATE TABLE scrape_job (
+    id VARCHAR2(7) PRIMARY KEY,
+    tnd DATE,
+    source VARCHAR2(20),
+    status VARCHAR2(1),
+    status_from DATE,
+    status_to DATE,
+    url VARCHAR2(250),
+    position VARCHAR2(200),
+    company_id VARCHAR2(11),
+    CONSTRAINT fk_scrape_job_company
+        FOREIGN KEY (company_id)
+        REFERENCES scrape_company(id)
+);
+
