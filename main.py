@@ -9,35 +9,35 @@ import asyncio
 
 def profession():
 
-    cursor = open_database()
+    connection, cursor = open_database()
 
     scrape_profession(cursor)
 
-    close_database(cursor)
+    close_database(connection, cursor)
 
 def karriere():
 
-    cursor = open_database()
+    connection, cursor = open_database()
 
     asyncio.run(scrape_karriere(cursor))
 
-    close_database(cursor)
+    close_database(connection, cursor)
 
 def ams():
 
-    cursor = open_database()
+    connection, cursor = open_database()
 
     asyncio.run(scrape_ams(cursor))
 
-    close_database(cursor)
+    close_database(connection, cursor)
 
 def stepstone():
 
-    cursor = open_database()
+    connection, cursor = open_database()
 
     asyncio.run(scrape_stepstone(cursor))
 
-    close_database(cursor)
+    close_database(connection, cursor)
 
 def main_parallel():
     p1 = Process(target=profession)
@@ -57,11 +57,11 @@ def main_parallel():
     p3.join()
     p4.join()
 
-    cursor = open_database()
+    connection, cursor = open_database()
 
     main_load(cursor)
 
-    close_database(cursor)
+    close_database(connection, cursor)
 
 def main_linear():
     profession()

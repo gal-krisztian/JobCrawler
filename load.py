@@ -1,10 +1,11 @@
+import traceback
 from functions import g_date_sql
 from database import close_database, get_values, load_scrape_job, load_scrape_company, update_value
 from data import process_address, process_salary
 
 def main_load(p_cursor):
     schema = "JOBCRAWLER"
-    source_table = list(("SCRAPE_PROFESSION_RAW", "SCRAPE_KARRIERE_RAW", "SCRAPE_AMS_RAW", "SCRAPE_STEPSTONE_RAW"))
+    source_table = list(("SCRAPE_PROFESSION_RAW", "SCRAPE_KARRIERE_RAW",)) #"SCRAPE_AMS_RAW", "SCRAPE_STEPSTONE_RAW"
     target_tables = dict(job="SCRAPE_JOB", company="SCRAPE_COMPANY")
 
     for table in source_table:
@@ -48,6 +49,7 @@ def main_load(p_cursor):
 
         except Exception as e:
             print(f"Error while loading profession data: {e}; {id}")
+            traceback.print_exc()
             continue
 
     update_value(p_cursor, schema, target_tables["job"], "status", "'D'", f"trunc(status_to) < trunc({g_date_sql}) and status = 'A'")
@@ -57,5 +59,3 @@ def main_load(p_cursor):
 
     for table in source_table:
         truncate_table(cursor, schema, table) """
-    
-    close_database(p_cursor)

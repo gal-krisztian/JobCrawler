@@ -11,12 +11,15 @@ def open_database():
         user = username,
         password = password,
         dsn = dsn
-    ).cursor()
+    )
 
-    return connection
+    cursor = connection.cursor()
+
+    return connection, cursor
 
 # Close connection
-def close_database(connection):
+def close_database(connection, cursor):
+    cursor.close()
     connection.close()
 
 def is_exists_table(cursor, schema, table):

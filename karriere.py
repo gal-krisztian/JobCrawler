@@ -30,10 +30,14 @@ async def get_id():
                 break
 
         # Collect all job IDs
-        elements = await page.locator('li[data-gtm-item-id]').all()
+        elements = await page.locator('li.m-jobsList__item').all()
         ids = []
         for element in elements:
-            job_id = await element.get_attribute("data-gtm-item-id")
+            try:
+                job_url = await element.locator('a.m-jobsListItem__titleLink').get_attribute('href')
+            except:
+                continue
+            job_id = job_url.split('/')[-1] if job_url else None
             if job_id:
                 ids.append(job_id)
 
@@ -120,8 +124,8 @@ async def scrape_karriere(p_cursor):
 
         salary_details = get_salary_details(data)
 
-        expand_table(p_cursor, schema, table, id, url, position, company_name, company_address, salary_details)
+        expand_table(p_cursor, schema, table, id, url, position, company_name, company_address, salary_details, None, None, None)
 
-        insert_values(p_cursor, schema, table, source, id, url, position, company_name, company_address, salary_details)
+        insert_values(p_cursor, schema, table, source, id, url, position, company_name, company_address, salary_details, None, None, None)
 
     print("Karriere: kész.")
