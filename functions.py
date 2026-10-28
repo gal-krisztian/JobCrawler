@@ -42,7 +42,12 @@ def wait(min_wait, max_wait):
 
 def save_file(p_path, p_page=None):
     with open(p_path, "w", encoding="utf-8") as file:
-        file.write(p_page.text)
+        if hasattr(p_page, "prettify"):
+            file.write(p_page.prettify())
+        elif hasattr(p_page, "text"):
+            file.write(p_page.text)
+        else:
+            file.write(str(p_page))
 
 def load_file(p_path="./Files"):
     with open(p_path, "r", encoding="utf-8") as file:

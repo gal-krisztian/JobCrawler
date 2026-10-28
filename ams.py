@@ -8,7 +8,7 @@ async def get_urls(p_url):
     urls = []
 
     async with async_playwright() as pw:
-        browser_ch = await pw.chromium.launch(headless=True, slow_mo=500)
+        browser_ch = await pw.chromium.launch(headless=True, slow_mo=750)
         page_ch = await browser_ch.new_page()
         await page_ch.goto(p_url)
 
@@ -19,16 +19,17 @@ async def get_urls(p_url):
             pass  # if button not found, ignore
 
         # Collect job links
-        links = await page_ch.locator("xpath=//a[contains(@href, '/public/emps/jobs/uuid')]").all()
+        links = await page_ch.locator("xpath=//a[contains(@href, '/public/emps/jobs/')]").all() #uuid
         for link in links:
             href = await link.get_attribute("href")
             if href:
                 urls.append(f"{start_url}{href}")
+            else:
+                print(f"No href found for link: {link}")
 
-        if await page_ch.locator('a[title="nächste Seite"]').locator('..').get_attribute("class") == "ams-page-item": # There is next page
+        if await page_ch.locator('button[title="nächste Seite"]').locator('..').get_attribute("class") == "ams-page-item": # There is next page 
             next_button = True
-        elif await page_ch.locator('a[title="nächste Seite"]').locator('..').get_attribute("class") == "ams-page-item disabled": # No next page
-            print("No next page")
+        elif await page_ch.locator('button[title="nächste Seite"]').locator('..').get_attribute("class") == "ams-page-item disabled": # No next page
             next_button = False
 
         await browser_ch.close()
@@ -37,7 +38,7 @@ async def get_urls(p_url):
 
 async def get_data(p_url):
     async with async_playwright() as pw:
-        browser_ch = await pw.chromium.launch(headless=True, slow_mo=500)
+        browser_ch = await pw.chromium.launch(headless=True, slow_mo=750)
         page_ch = await browser_ch.new_page()
         await page_ch.goto(p_url)
 
@@ -47,9 +48,9 @@ async def get_data(p_url):
         except:
             pass
 
-        # Extract values safely
+        # Extract values
         id_locator = page_ch.locator("#ams-detail-adgId [data-testid='key-value-pair-content']")
-        position_locator = page_ch.locator("#ams-detail-details-header .fw-semibold")
+        position_locator = page_ch.locator("#ams-detail-details-header.fw-semibold")
         company_name_locator = page_ch.locator("#ams-detail-companyname-text")
         company_address_locator = page_ch.locator("#ams-detail-location [data-testid='key-value-pair-content']")
 
@@ -91,9 +92,9 @@ async def scrape_ams(p_cursor):
 
                     salary_details = ""
 
-                    expand_table(p_cursor, schema, table, id, url, position, company_name, company_address, salary_details)
+                    expand_table(p_cursor, schema, table, id, url, position, company_name, company_address, salary_details, None, None, None)
 
-                    insert_values(p_cursor, schema, table, source, id, url, position, company_name, company_address, salary_details)
+                    insert_values(p_cursor, schema, table, source, id, url, position, company_name, company_address, salary_details, None, None, None)
 
             if is_next_page is False:
                 break

@@ -5,7 +5,7 @@ from data import process_address, process_salary
 
 def main_load(p_cursor):
     schema = "JOBCRAWLER"
-    source_table = list(("SCRAPE_PROFESSION_RAW", "SCRAPE_KARRIERE_RAW",)) #"SCRAPE_AMS_RAW", "SCRAPE_STEPSTONE_RAW"
+    source_table = list(("SCRAPE_PROFESSION_RAW", "SCRAPE_KARRIERE_RAW", "SCRAPE_AMS_RAW", "SCRAPE_STEPSTONE_RAW"))
     target_tables = dict(job="SCRAPE_JOB", company="SCRAPE_COMPANY")
 
     for table in source_table:
@@ -44,6 +44,8 @@ def main_load(p_cursor):
                         company_ids.append({"ID": company_id, "COMPANY_NAME": company_name, "COMPANY_FULL_ADDRESS": company_address})
 
                 min_salary_by_hour, max_salary_by_hour, currency = process_salary(p_cursor, schema, table, id['ID'])
+
+                print(f"Loading job data for ID: {id['ID']} with company ID: {company_id}, min salary: {min_salary_by_hour}, max salary: {max_salary_by_hour}, currency: {currency}")
                     
                 load_scrape_job(p_cursor, schema, target_tables["job"], schema, table, id['ID'], company_id, min_salary_by_hour, max_salary_by_hour, currency)
 

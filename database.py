@@ -1,5 +1,6 @@
 import oracledb
 import inspect
+import traceback
 from config import username, password, dsn
 from functions import g_date_sql
 
@@ -135,6 +136,7 @@ def get_values(p_cursor, p_schema, p_table, p_value, p_condition = "1 = 1"):
         columns = [column[0] for column in p_cursor.description]
 
     except oracledb.DatabaseError as e:
+        print(sql)
         error, = e.args
         print("Error code: ", error.code, " Error message: ", error.message)
 
@@ -153,9 +155,10 @@ def load_scrape_job(p_cursor, p_target_schema, p_target_table, p_source_schema, 
         sysdate, source, status, status_from, status_to, id, url, 
         position, :company_id, emp_type, category1, category2, 
         :min_salary_by_hour, :max_salary_by_hour, :currency 
-        from {p_source_schema}.{p_source_table} where id = {p_id}"""
+        from {p_source_schema}.{p_source_table} where id = :id"""
 
     params = {
+        "id": p_id,
         "company_id": p_company_id,
         "min_salary_by_hour": p_min_salary_by_hour,
         "max_salary_by_hour": p_max_salary_by_hour,
@@ -168,7 +171,7 @@ def load_scrape_job(p_cursor, p_target_schema, p_target_table, p_source_schema, 
     except oracledb.DatabaseError as e:
         error, = e.args
         print("Error code: ", error.code, " Error message: ", error.message)
-        print("p_id: ", p_id)
+        print(sql)
 
 def load_scrape_company(p_cursor, p_schema, p_table, p_company_name, p_company_address, p_country, p_country_code, p_state, p_county, p_city, p_postcode, p_district, p_street, p_housenumber):
     company_id = p_cursor.var(oracledb.STRING, size=11)
